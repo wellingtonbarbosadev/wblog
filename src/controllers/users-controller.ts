@@ -1,5 +1,6 @@
 import { AppError } from "@/utils/AppError";
 import { Request, Response, NextFunction } from "express";
+import { hash } from "bcrypt";
 import z from "zod";
 
 class UsersController {
@@ -7,7 +8,7 @@ class UsersController {
     return response.json({ message: "OK" })
   }
 
-  create(request: Request, response: Response, next: NextFunction) {
+  async create(request: Request, response: Response, next: NextFunction) {
 
     const userSchema = z.object({
       name: z.string().trim().min(1),
@@ -19,7 +20,9 @@ class UsersController {
 
     const { name, email, password } = userSchema.parse(request.body)
 
-    return response.status(200).json({ name, email, password })
+    const hashedPassword = await hash(password, 8)
+
+    return response.status(200).json({ name, email, password, hashedPassword })
   }
 }
 
