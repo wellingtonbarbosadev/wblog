@@ -8,23 +8,18 @@ class UsersController {
   }
 
   create(request: Request, response: Response, next: NextFunction) {
-    enum userRoles {
-      CUSTOMER = "customer",
-      SALE = "sale"
-    }
 
     const userSchema = z.object({
-      name: z.string(),
+      name: z.string().trim().min(1),
       email: z.email(),
-      role: z.enum(userRoles),
       password: z.string({
         error: (iss) => iss.input === undefined ? "password is required" : "invalid password"
       }).min(6)
     })
 
-    const result = userSchema.parse(request.body)
+    const { name, email, password } = userSchema.parse(request.body)
 
-    return response.status(200).json({ result })
+    return response.status(200).json({ name, email, password })
   }
 }
 
