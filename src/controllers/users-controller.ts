@@ -47,8 +47,15 @@ class UsersController {
   async findById(request: Request<{ userId: string }>, response: Response, next: NextFunction) {
 
     const userId = request.params.userId
+
+    const uuidSchema = z.uuid()
+    uuidSchema.parse(userId)
     
     const user = await prisma.user.findUnique({ where: { id: userId }})
+
+    if (!user) {
+      throw new AppError("user not exists")
+    }
 
     return response.json(user)
   }
