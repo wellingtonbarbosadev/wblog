@@ -11,6 +11,22 @@ class UsersController {
 
     return response.json(allUsers)
   }
+  
+  async findById(request: Request<{ userId: string }>, response: Response, next: NextFunction) {
+
+    const userId = request.params.userId
+
+    const uuidSchema = z.uuid()
+    uuidSchema.parse(userId)
+    
+    const user = await prisma.user.findUnique({ where: { id: userId }})
+
+    if (!user) {
+      throw new AppError("user not exists")
+    }
+
+    return response.json(user)
+  }
 
   async create(request: Request, response: Response, next: NextFunction) {
 
@@ -41,24 +57,9 @@ class UsersController {
 
     const { password: _, ...userWithoutPassword } = user
 
-    return response.status(200).json(userWithoutPassword)
+    return response.status(201).json(userWithoutPassword)
   }
 
-  async findById(request: Request<{ userId: string }>, response: Response, next: NextFunction) {
-
-    const userId = request.params.userId
-
-    const uuidSchema = z.uuid()
-    uuidSchema.parse(userId)
-    
-    const user = await prisma.user.findUnique({ where: { id: userId }})
-
-    if (!user) {
-      throw new AppError("user not exists")
-    }
-
-    return response.json(user)
-  }
 }
 
 export { UsersController }
