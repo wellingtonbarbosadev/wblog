@@ -43,6 +43,15 @@ class UsersController {
 
     return response.status(200).json(userWithoutPassword)
   }
+
+  async findById(request: Request<{ userId: string }>, response: Response, next: NextFunction) {
+
+    const userId = request.params.userId
+    
+    const user = await prisma.user.findUnique({ where: { id: userId }})
+
+    return response.json(user)
+  }
 }
 
 export { UsersController }
