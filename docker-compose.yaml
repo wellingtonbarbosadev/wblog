@@ -1,6 +1,6 @@
 services:
   postgres:
-    image: bitnami/postgresql:latest
+    image: postgres:latest
     container_name: postgres
     ports:
       - "5432:5432"
