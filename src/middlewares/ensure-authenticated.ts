@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { verify } from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 
 import { authConfig } from "@/configs/auth";
 import { AppError } from "@/utils/AppError";
@@ -23,12 +23,14 @@ function ensureAuthenticated(
     }
 
     const [, token] = authHeader.split(" ")
-    const { role, sub: user_id } = verify(token ?? "", authConfig.jwt.secret) as TokenPayload
+    const { role, sub: user_id } = jwt.verify(token ?? "", authConfig.jwt.secret) as TokenPayload
 
     request.user = {
       id: user_id,
       role
     }
+
+    return next()
 
   } catch (error) {
     throw new AppError("Invalid JWT token", 401)
