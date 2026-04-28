@@ -1,4 +1,3 @@
-import { app } from "@/app";
 import { SessionsController } from "@/controllers/sessions-controller";
 import { Router } from "express";
 
