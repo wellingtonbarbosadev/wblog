@@ -49,7 +49,6 @@ class UsersController {
 
     const user = await prisma.user.create({
       data: {
-        ...request.body,
         name,
         email,
         password: hashedPassword
