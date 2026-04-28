@@ -8,51 +8,46 @@ import z from "zod";
 
 class SessionsController {
   async index(request: Request, response: Response, next: NextFunction) {
-    return response.json()
+    return response.json();
   }
-  
+
   async create(request: Request, response: Response, next: NextFunction) {
     const bodySchema = z.object({
       email: z.email(),
-      password: z.string().min(6)
-    })
+      password: z.string().min(6),
+    });
 
-    const { email, password } = bodySchema.parse(request.body)
+    const { email, password } = bodySchema.parse(request.body);
 
     const user = await prisma.user.findFirst({
-      where: { email }
-    })
+      where: { email },
+    });
 
     if (!user || !user.password) {
-      throw new AppError("Invalid email or password", 401)
+      throw new AppError("Invalid email or password", 401);
     }
 
-    const passwordMatched = await compare(password, user.password)
+    const passwordMatched = await compare(password, user.password);
 
     if (!passwordMatched) {
-      throw new AppError("Invalid email or password", 401)
+      throw new AppError("Invalid email or password", 401);
     }
 
-    const { secret, expiresIn } = authConfig.jwt
+    const { secret, expiresIn } = authConfig.jwt;
 
     const token = jwt.sign({ role: user.role ?? "customer" }, secret, {
       subject: user.id,
-      expiresIn
-    })
+      expiresIn,
+    });
 
-    const { password: _, ...userWithoutPassword } = user
+    const { password: _, ...userWithoutPassword } = user;
 
-    return response.json({ token, user: userWithoutPassword })
+    return response.json({ token, user: userWithoutPassword });
   }
-  
-  update(request: Request, response: Response, next: NextFunction) {
-    
-  }
-  
-  delete(request: Request, response: Response, next: NextFunction) {
-    
-  }
-  
+
+  update(request: Request, response: Response, next: NextFunction) {}
+
+  delete(request: Request, response: Response, next: NextFunction) {}
 }
 
-export { SessionsController }
+export { SessionsController };
