@@ -54,6 +54,8 @@ class DeliveriesLogsController {
 
     if (delivery.status === "processing") {
       throw new AppError("change status to 'shipped'");
+    } else if (delivery.status === "delivered") {
+      throw new AppError("order already delivered");
     }
 
     const deliveryLog = await prisma.deliveryLog.create({
