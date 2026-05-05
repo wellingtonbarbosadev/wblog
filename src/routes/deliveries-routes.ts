@@ -10,7 +10,10 @@ const deliveriesStatusController = new DeliveriesStatusController();
 
 deliveriesRouter.use(ensureAuthenticated, verifyUserAuthorization(["sale"]));
 deliveriesRouter.get("/", deliveriesController.index);
+deliveriesRouter.get("/:id", deliveriesController.show);
 deliveriesRouter.post("/", deliveriesController.create);
+
+// Status
 deliveriesRouter.patch("/:id/status", deliveriesStatusController.update);
 
 export { deliveriesRouter };
