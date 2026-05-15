@@ -1,6 +1,6 @@
 # WBlog API
 
-API REST para gestão de usuários, autenticação e fluxo de entregas com histórico de movimentações.
+API REST para gerenciamento de usuários, autenticação e entregas com histórico de movimentações.
 
 ## Tecnologias
 
@@ -9,26 +9,26 @@ API REST para gestão de usuários, autenticação e fluxo de entregas com hist�
 - Express
 - Prisma ORM
 - PostgreSQL
-- JWT (jsonwebtoken)
-- Zod (validação de dados)
-- bcrypt (hash de senhas)
-- Docker Compose (ambiente de banco local)
+- JWT (`jsonwebtoken`)
+- Zod (validação de payload)
+- bcrypt (hash de senha)
+- Docker Compose (ambiente local de banco)
 - tsup / tsx
 
 ## Funcionalidades
 
 - Cadastro e consulta de usuários
-- Autenticação com geração de token JWT
-- Controle de acesso por perfil (`customer` e `sale`)
+- Autenticação com JWT
+- Autorização por perfil (`customer` e `sale`)
 - Criação e consulta de entregas
-- Atualização de status da entrega
+- Atualização de status de entrega
 - Registro e consulta de logs de entrega
 
 ## Pré-requisitos
 
-- Node.js **22** (mínimo recomendado no projeto)
+- Node.js `22`
 - npm
-- PostgreSQL disponível localmente ou via Docker
+- PostgreSQL disponível (local) ou Docker
 
 ## Configuração do ambiente
 
@@ -40,7 +40,7 @@ npm install
 
 2. Crie o arquivo `.env` na raiz do projeto.
 
-3. Preencha as variáveis com base no `.env-example`:
+3. Use o arquivo `.env-example` como referência e defina as variáveis:
 
 ```env
 DATABASE_URL="postgresql://postgres:postgres@localhost:5432/wblog"
@@ -50,7 +50,7 @@ PORT=3333
 
 ## Banco de dados
 
-O projeto usa Prisma com PostgreSQL.
+Este projeto utiliza Prisma com PostgreSQL.
 
 1. Suba o banco com Docker Compose (opcional):
 
@@ -64,19 +64,19 @@ docker compose up -d
 npx prisma migrate deploy
 ```
 
-Para desenvolvimento local, também pode usar:
+Para desenvolvimento local:
 
 ```bash
 npx prisma migrate dev
 ```
 
-3. Gerar o client Prisma (já executado no `postinstall`):
+3. Gere o Prisma Client (também executado no `postinstall`):
 
 ```bash
 npx prisma generate
 ```
 
-Observação: não há seed configurado no projeto atualmente.
+Seed: não existe seed configurado atualmente.
 
 ## Executando a aplicação
 
@@ -95,48 +95,47 @@ npm start
 
 ## Scripts disponíveis
 
-- `npm run dev` — inicia em modo desenvolvimento com watch
-- `npm run build` — gera build em `build/`
-- `npm start` — executa a aplicação compilada
-- `npm run start:dev` — executa a aplicação compilada lendo `.env`
-- `npm test` — script padrão atual (retorna erro pois não há testes implementados)
+- `npm run dev` — executa a API com watch (`tsx`)
+- `npm run build` — gera build ESM em `build/`
+- `npm start` — executa `build/server.js`
+- `npm run start:dev` — executa build com `.env`
 - `npm run postinstall` — gera Prisma Client
+- `npm test` — script padrão atual (sem suíte de testes implementada)
 
 ## Autenticação e autorização
 
-A autenticação é feita via JWT no endpoint de sessão.
+A autenticação é feita com JWT no endpoint `POST /sessions`.
 
-- Header obrigatório para rotas protegidas:
+Use o header em rotas protegidas:
 
 ```http
 Authorization: Bearer <token>
 ```
 
-- Expiração do token: `1d`
-- O payload inclui o `role` do usuário
-- Perfis existentes:
+Regras implementadas:
+
+- O token expira em `1d`
+- O payload do token inclui `role`
+- Perfis disponíveis:
   - `customer`
   - `sale`
-
-Regras de autorização implementadas:
-
-- Rotas de `/deliveries` exigem usuário autenticado com perfil `sale`
-- `GET /delivery-logs/:id` permite `customer` e `sale`, mas `customer` só pode ver logs das próprias entregas
-- `POST /delivery-logs/:id` permite apenas `sale`
+- Rotas `/deliveries` exigem perfil `sale`
+- `GET /delivery-logs/:id` aceita `customer` e `sale`, mas `customer` só pode consultar entregas próprias
+- `POST /delivery-logs/:id` aceita apenas `sale`
 
 ## Endpoints
 
-Base URL local (exemplo): `http://localhost:3333`
+Base URL local: `http://localhost:3333`
 
 ### Usuários (`/users`)
 
 | Método | Rota | Descrição | Auth |
 | ------ | ---- | --------- | ---- |
-| GET | `/users` | Lista todos os usuários | Não |
+| GET | `/users` | Lista usuários | Não |
 | GET | `/users/:userId` | Busca usuário por ID | Não |
 | POST | `/users` | Cria usuário | Não |
 
-**Exemplo de request — criar usuário**
+Request body (`POST /users`):
 
 ```json
 {
@@ -150,10 +149,10 @@ Base URL local (exemplo): `http://localhost:3333`
 
 | Método | Rota | Descrição | Auth |
 | ------ | ---- | --------- | ---- |
-| GET | `/sessions` | Endpoint existente (retorno vazio) | Não |
-| POST | `/sessions` | Autentica usuário e retorna JWT | Não |
+| GET | `/sessions` | Endpoint existente (retorna `null`) | Não |
+| POST | `/sessions` | Autentica usuário e retorna token JWT | Não |
 
-**Exemplo de request — login**
+Request body (`POST /sessions`):
 
 ```json
 {
@@ -166,12 +165,12 @@ Base URL local (exemplo): `http://localhost:3333`
 
 | Método | Rota | Descrição | Auth |
 | ------ | ---- | --------- | ---- |
-| GET | `/deliveries` | Lista entregas com usuário e logs | Sim (`sale`) |
+| GET | `/deliveries` | Lista entregas com dados do usuário e logs | Sim (`sale`) |
 | GET | `/deliveries/:id` | Detalha uma entrega | Sim (`sale`) |
 | POST | `/deliveries` | Cria entrega | Sim (`sale`) |
 | PATCH | `/deliveries/:id/status` | Atualiza status da entrega | Sim (`sale`) |
 
-**Exemplo de request — criar entrega**
+Request body (`POST /deliveries`):
 
 ```json
 {
@@ -180,7 +179,7 @@ Base URL local (exemplo): `http://localhost:3333`
 }
 ```
 
-**Exemplo de request — atualização parcial de status (PATCH)**
+Request body parcial (`PATCH /deliveries/:id/status`):
 
 ```json
 {
@@ -188,16 +187,16 @@ Base URL local (exemplo): `http://localhost:3333`
 }
 ```
 
-Valores aceitos para `status`: `processing`, `shipped`, `delivered`.
+Valores aceitos em `status`: `processing`, `shipped`, `delivered`.
 
 ### Logs de entrega (`/delivery-logs`)
 
 | Método | Rota | Descrição | Auth |
 | ------ | ---- | --------- | ---- |
 | GET | `/delivery-logs/:id` | Lista logs de uma entrega | Sim (`customer`/`sale`) |
-| POST | `/delivery-logs/:id` | Cria novo log para entrega | Sim (`sale`) |
+| POST | `/delivery-logs/:id` | Cria log de entrega | Sim (`sale`) |
 
-**Exemplo de request — criar log de entrega**
+Request body (`POST /delivery-logs/:id`):
 
 ```json
 {
@@ -207,8 +206,8 @@ Valores aceitos para `status`: `processing`, `shipped`, `delivered`.
 
 Observações:
 
-- Não há filtros/query params implementados nos endpoints atuais.
-- Ao atualizar status em `PATCH /deliveries/:id/status`, um log é criado automaticamente com a descrição igual ao status.
+- Não há filtros/query params implementados atualmente
+- `PATCH /deliveries/:id/status` também registra um log automaticamente com a descrição do novo status
 
 ## Respostas de erro
 
@@ -228,7 +227,13 @@ Observações:
 }
 ```
 
-### Erro de autenticação/autorização
+### Erros de autenticação/autorização
+
+```json
+{
+  "message": "JWT token not found"
+}
+```
 
 ```json
 {
@@ -242,7 +247,13 @@ Observações:
 }
 ```
 
-### Erro de regra de negócio
+### Erros de regra de negócio
+
+```json
+{
+  "message": "Invalid email or password"
+}
+```
 
 ```json
 {
@@ -253,6 +264,12 @@ Observações:
 ```json
 {
   "message": "change status to 'shipped'"
+}
+```
+
+```json
+{
+  "message": "order already delivered"
 }
 ```
 
